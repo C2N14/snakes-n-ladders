@@ -10,8 +10,8 @@
 
 using namespace std;
 
-// I really don't know if I love this chain of delegated constructos, but it was
-// the solution I found worked the best to have each class call its default
+// I really don't know if I love this chain of delegated constructors, but it
+// was the solution I found worked the best to have each class call its default
 // constructor without aggregating all constants in a single file
 
 Board::Board() : Board(DEFAULT_BOARD_SIZE, DEFAULT_SNAKES, DEFAULT_LADDERS) {}
@@ -45,6 +45,7 @@ Board::Board(size_t boardSize, size_t numberOfSnakes, size_t numberOfLadders,
 
     random_shuffle(possiblePlaces.begin(), possiblePlaces.end());
 
+    // prioritize snakes, obviously ;)
     for (size_t i = 0; i < specialTiles; i++) {
         if (i < numberOfSnakes) {
             this->d_tiles[possiblePlaces[i]] = snake;
@@ -60,7 +61,6 @@ string Board::tileString(size_t tileNumber) {
     return this->d_tiles[tileNumber].toString();
 }
 
-// public version
 int Board::tileSteps(size_t tileNumber) {
     return this->d_tiles[tileNumber].steps();
 }

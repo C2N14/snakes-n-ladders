@@ -11,7 +11,9 @@
 
 using namespace std;
 
-const string OUT_FILENAME = "snakes";
+#ifndef OUT_FILENAME
+#define OUT_FILENAME "snakes"
+#endif
 
 template <class T>
 pair<T, bool> parseArgument(ostream &out, string argumentName,

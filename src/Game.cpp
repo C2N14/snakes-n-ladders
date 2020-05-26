@@ -31,18 +31,14 @@ Game::Game(istream &is, ostream &os, size_t boardSize, size_t numberOfSnakes,
 }
 
 void Game::turn(Player *player) {
-    Die die(d_die);
-    Board board(d_board);
-    ostream &out(this->d_out);
-
-    unsigned int roll = die.roll();
+    unsigned int roll = this->d_die.roll();
     size_t position = player->position();
-    size_t boardSize = board.size();
+    size_t boardSize = this->d_board.size();
 
-    out << this->d_turnNumber << " ";
-    out << player->number() << " ";
-    out << position + 1 << " ";
-    out << roll << " ";
+    this->d_out << this->d_turnNumber << " ";
+    this->d_out << player->number() << " ";
+    this->d_out << position + 1 << " ";
+    this->d_out << roll << " ";
 
     // handle roll that falls outside of the board
     size_t rollTileNumber;
@@ -52,9 +48,9 @@ void Game::turn(Player *player) {
         rollTileNumber = position + roll;
     }
 
-    out << board[rollTileNumber] << " ";
+    this->d_out << this->d_board[rollTileNumber] << " ";
 
-    int steps = board.tileSteps(rollTileNumber);
+    int steps = this->d_board.tileSteps(rollTileNumber);
     size_t newPosition = rollTileNumber + steps;
 
     // handle steps that fall outside the board
@@ -66,28 +62,26 @@ void Game::turn(Player *player) {
 
     player->setPosition(newPosition);
 
-    out << newPosition + 1 << " ";
-    out << endl;
+    this->d_out << newPosition + 1 << " ";
+    this->d_out << endl;
 
     this->d_turnNumber++;
 }
 
 void Game::start() {
-    ostream &out(this->d_out);
-    Board board(this->d_board);
-
+    // start with first player
     Player *currentPlayer = &this->d_players[0];
 
     while (this->d_turnNumber <= this->d_maxTurns) {
         if (!this->turnPrompt()) {
-            out << "Thanks for playing!!!" << endl;
+            this->d_out << "Thanks for playing!!!" << endl;
             break;
         }
 
         // start the turn
         this->turn(currentPlayer);
 
-        if (currentPlayer->position() >= board.size() - 1) {
+        if (currentPlayer->position() >= this->d_board.size() - 1) {
             break;
         }
 
@@ -96,17 +90,17 @@ void Game::start() {
             &this->d_players[currentPlayer->number() % this->d_players.size()];
     }
 
-    out << "-- GAME OVER --" << endl;
+    this->d_out << "-- GAME OVER --" << endl;
 
     if (this->d_turnNumber == this->d_maxTurns) {
-        out << "The maximum number of turns has been reached..." << endl;
+        this->d_out << "The maximum number of turns has been reached..."
+                    << endl;
     }
 
-    for (auto player : this->d_players) {
-        if (player.position() >= board.size() - 1) {
-            out << "Player " << player.number() << " is the winner!!!" << endl;
-            return;
-        }
+    if (currentPlayer->position() >= this->d_board.size() - 1) {
+        this->d_out << "Player " << currentPlayer->number()
+                    << " is the winner!!!" << endl;
+        return;
     }
 }
 
