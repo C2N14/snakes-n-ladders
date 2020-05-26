@@ -76,11 +76,19 @@
 
                                  > ./snakes 
 
+      Si se quiere jugar un juego con parametros personalizados se puede:
+
+                        > ./snakes 40 8 8 -5 3 4 200 a
+
 
    Por otro lado, si se prefiere hacer una simluacion mas dinamica, se puede
            ejecutar especificando los archivos de entrada y salida:
 
                           > ./snakes in.txt out.txt
+
+     Del mismo modo, para utilizar parametros personalizados Y archivos del
+
+                > ./snakes in.txt out.txt 20 4 4 -2 3 1 100 m
 
 
 
@@ -92,23 +100,17 @@
 
 Para realizar este programa, utilice algunos conceptos de POO tales como:
    * Clases/objetos (duh)
-   * Encapsulacion (con los atributos y metodos privados)
+   * Encapsulacion (con los atributos y metodos privados y protegidos)
    * Abstracción (con los header files)
-   * Sobrecarga de operadores y de metodos (en la clase Board)
+   * Polomorfismo (sobrecarga de operadores y de metodos)
 
 Algunas justificaciones del diseno que tome al realizar este programa son:
    * Las casillas de snakes y ladders del tablero son generadas de manera
-     aleatoria, sin embargo existen algunas restricciones:
-      - No puede haber snakes ni en la ultima casilla, ni en una casilla donde
-        los pasos llevarian antes de la primera
-      - No puede haber ladders ni en la primera casilla, ni en una casilla donde
-        los pasos llevarian despues de la ultima
+     aleatoria.
    * Para evitar repetir codigo cuando el programa se corre por si solo vs.
      cuando se utilizan archivos de entrada y salida, el constructor de la clase
-     MyGame tiene como argumentos dos streams, y estos pueden ser asignados como
-     streams de tipo archivo o de terminal segun los argumentos, en main()
-   * Prefiero almacenar los tipos de casilla como enums en lugar de strings por
-     que asi me aseguro que solo pueden existir estos tipos :)
+     Game tiene como argumentos dos streams, y estos pueden ser asignados como
+     streams de tipo archivo o de terminal segun los argumentos que se le pase
    * Usualmente asigno como nombre a los atributos de las clases el prefijo "d_"
      y omito los prefijos "get" en los metodos porque asi lo lei en un libro y
      es algo a lo que me acostrumbre jeje
@@ -116,6 +118,4 @@ Algunas justificaciones del diseno que tome al realizar este programa son:
      la representacion de string del tipo de casilla porque me gusto como se
      veia esta notacion
    * Obviamente llame a la clase Die porque es un solo dado ಠ╭╮ಠ
-   * En general todos los constructores estan hechos para ser personalizables,
-     por si se quisiera extender un poco la funcionalidad del juego (o mas bien
-      cuando *wink* *wink*)
+  

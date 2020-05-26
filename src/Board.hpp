@@ -1,20 +1,25 @@
+#ifndef BOARD_H
+#define BOARD_H
+
+#include "Tile.hpp"
 #include <string>
 #include <vector>
 
 const size_t DEFAULT_BOARD_SIZE = 30;
-const size_t DEFAULT_MAX_SPECIAL_TILES = 14;
+const size_t DEFAULT_SNAKES = 6;
+const size_t DEFAULT_LADDERS = 6;
 
 class Board {
 private:
-    enum TileType { Snake, Ladder, Normal };
-
-    std::vector<TileType> d_board;
-
-    int tileSteps(TileType type);
+    std::vector<Tile> d_tiles;
 
 public:
     Board();
-    Board(size_t boardSize, size_t specialTiles);
+    Board(size_t boardSize, size_t numberOfSnakes, size_t numberOfLadders);
+    Board(size_t boardSize, size_t numberOfSnakes, size_t numberOfLadders,
+          int snakePenalty, int ladderReward);
+    Board(size_t boardSize, size_t numberOfSnakes, size_t numberOfLadders,
+          Tile snake, Tile ladder, Tile normal);
 
     size_t size();
 
@@ -23,3 +28,5 @@ public:
 
     std::string operator[](size_t tileNumber);
 };
+
+#endif

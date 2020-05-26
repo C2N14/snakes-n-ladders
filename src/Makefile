@@ -1,8 +1,15 @@
 CXX = g++
-OUT_FILENAME = snakes
-CXXFLAGS = -Wall -D'OUT_FILENAME="$(OUT_FILENAME)"'
-OBJECTS = Board.cpp Player.cpp Die.cpp snakes.cpp
-EXEC = $(OUT_FILENAME)
+CXXFLAGS = -Wall -Werror -Wextra -pedantic -std=c++11 -g -fsanitize=address
+LDFLAGS =  -fsanitize=address
 
-all: $(OBJECTS)                                                       
-	$(CXX) $(CXXFLAGS) -o $(EXEC) $(OBJECTS)
+SRC = 
+OBJ = $(SRC:.cc=.o)
+EXEC = main
+
+all: $(EXEC)
+
+$(EXEC): $(OBJ)
+	$(CXX) $(LDFLAGS) -o $@ $(OBJ) $(LBLIBS)
+
+clean:
+	rm -rf $(OBJ) $(EXEC)

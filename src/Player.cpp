@@ -2,6 +2,8 @@
 
 using namespace std;
 
+Player::Player() {}
+
 Player::Player(unsigned int playerNumber) {
     this->d_playerNumber = playerNumber;
     this->d_currentPosition = 0;

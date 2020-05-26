@@ -1,3 +1,6 @@
+#ifndef DIE_H
+#define DIE_H
+
 const unsigned int DEFAULT_SIDES = 6;
 
 class Die {
@@ -10,3 +13,5 @@ public:
 
     unsigned int roll();
 };
+
+#endif

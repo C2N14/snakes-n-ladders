@@ -1,149 +1,54 @@
-#include "Board.hpp"
-#include "Die.hpp"
-#include "Player.hpp"
+#include "AutomaticGame.hpp"
+#include "Game.hpp"
+#include "ManualGame.hpp"
+#include <algorithm>
 #include <ctime>
 #include <fstream>
 #include <iostream>
-
-#ifdef OUT_FILENAME
-#define OUT_FILENAME "snakes"
-#endif
+#include <sstream>
+#include <tuple>
+#include <utility>
 
 using namespace std;
 
-const unsigned int MAX_TURNS = 100;
+const string OUT_FILENAME = "snakes";
 
-class MyGame {
-private:
-    istream &d_in;
-    ostream &d_out;
-
-    Die d_die;
-    Board d_board;
-
-    unsigned int d_turnNumber;
-
-    bool askToContinue() {
-        istream &in(this->d_in);
-        ostream &out(this->d_out);
-
-        string choice;
-        bool firstTry = true;
-        do {
-            if (firstTry) {
-                firstTry = false;
-            } else {
-                out << "Invalid option, please press C to continue next turn "
-                       "or E to end the game"
-                    << endl;
-            }
-
-            in >> choice;
-        } while (choice != "C" && choice != "E");
-
-        if (choice == "C") {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    void turn(Player *player) {
-        Die die(d_die);
-        Board board(d_board);
-        ostream &out(this->d_out);
-
-        unsigned int roll = die.roll();
-
-        out << this->d_turnNumber << " ";
-        out << player->number() << " ";
-        out << player->position() + 1 << " ";
-        out << roll << " ";
-
-        size_t rollTileNumber = player->position() + roll;
-
-        out << board[rollTileNumber] << " ";
-
-        size_t newPosition = rollTileNumber + board.tileSteps(rollTileNumber);
-        newPosition =
-            newPosition > board.size() - 1 ? board.size() - 1 : newPosition;
-
-        player->setPosition(newPosition);
-
-        out << player->position() + 1 << " ";
-        out << endl;
-
-        this->d_turnNumber++;
-    }
-
-public:
-    MyGame() : MyGame(cin, cout) {} // constructor delegation!
-    MyGame(istream &is, ostream &os)
-        : d_in(is), d_out(os), d_die(), d_board(), d_turnNumber(1) {}
-
-    void start() {
-        ostream &out(this->d_out);
-        Board board(this->d_board);
-
-        Player p1(1);
-        Player p2(2);
-
-        Player *currentPlayer = &p1;
-
-        out << "Press C to continue next turn, or E to end the game:" << endl;
-
-        while (this->d_turnNumber < MAX_TURNS) {
-            if (!this->askToContinue()) {
-                out << "Thanks for playing!!!" << endl;
-                break;
-            }
-
-            // start the turn
-            this->turn(currentPlayer);
-
-            if (currentPlayer->position() >= board.size() - 1) {
-                break;
-            }
-
-            // switch players for next turn
-            if (currentPlayer == &p1) {
-                currentPlayer = &p2;
-            } else {
-                currentPlayer = &p1;
-            }
-        }
-
-        out << "-- GAME OVER --" << endl;
-
-        if (this->d_turnNumber == MAX_TURNS - 1) {
-            out << "The maximum number of turns has been reached..." << endl;
-        }
-
-        if (p1.position() >= board.size() - 1) {
-            out << "Player 1 is the winner!!!" << endl;
-        } else if (p2.position() >= board.size() - 1) {
-            out << "Player 2 is the winner!!!" << endl;
-        }
-    }
-};
+template <class T>
+pair<T, bool> parseArgument(ostream &out, string argumentName,
+                            string argumentString, bool previousSucess,
+                            vector<T> possibleValues = {},
+                            bool excludeMode = false);
 
 int main(int argc, char **argv) {
 
-    if (argc != 1 && argc != 3) {
+    // 1 == ./snakes
+    // 3 == ./snakes in out
+    // 9 == ./snakes n n n n n n n s
+    // 11 == ./snakes in out n n n n n n n s
+    if (argc != 1 && argc != 3 && argc != 9 && argc != 11) {
         cout << "Usage: ./" << OUT_FILENAME << " OR ./" << OUT_FILENAME
-             << " fileIn fileOut" << endl;
+             << " fileIn fileOut"
+             << " with the following optional arguments:\n[n (board size) n "
+                "(snakes) n (ladders) n (snake penalty) n (ladder reward) n "
+                "(players) n (max turns) a/m (auto/manual)]"
+             << endl;
         return 1;
     }
 
     // seed the randomness!
     srand(time(NULL));
 
-    MyGame *game;
+    Game *game;
 
     ifstream fileIn;
     ofstream fileOut;
 
-    if (argc == 3) {
+    // these need to be NULL because they are protected???
+    istream in(NULL);
+    ostream out(NULL);
+
+    // if in and out files are specified, with or without optional parameters
+    if (argc == 3 || argc == 11) {
         fileIn.open(argv[1]);
         if (!fileIn.is_open() || fileIn.fail()) {
             cout << "ERROR: Couldn't open " << argv[1] << endl;
@@ -156,20 +61,141 @@ int main(int argc, char **argv) {
             return 2;
         }
 
-        game = new MyGame(fileIn, fileOut);
+        // point the streams to the file
+        in.rdbuf(fileIn.rdbuf());
+        out.rdbuf(fileOut.rdbuf());
 
     } else {
-        game = new MyGame();
+        // point the streams to the terminal
+        in.rdbuf(cin.rdbuf());
+        out.rdbuf(cout.rdbuf());
+    }
+
+    // if optional parameters are used
+    if (argc == 9 || argc == 11) {
+
+        // handle both file and console modes
+        unsigned int argOffset = 0;
+        if (argc == 11) {
+            argOffset = 2;
+        }
+
+        // I REALLY wanted to code this with try/catch and exceptions like in
+        // Python, but everything I read on StackOverflow said exceptions in C++
+        // are for EXCEPTIONAL cases, and that they are code smell :S
+
+        bool sucess = true;
+        size_t boardSize, numberOfSnakes, numberOfLadders, numberOfPlayers;
+        int snakePenalty, ladderReward;
+        unsigned int maxTurns;
+        char autoOrManual;
+
+        tie(boardSize, sucess) = parseArgument<size_t>(
+            out, "board size", argv[argOffset + 1], sucess, {0, 1}, true);
+
+        tie(numberOfSnakes, sucess) = parseArgument<size_t>(
+            out, "number of snakes", argv[argOffset + 2], sucess);
+
+        tie(numberOfLadders, sucess) = parseArgument<size_t>(
+            out, "number of ladders", argv[argOffset + 3], sucess);
+
+        tie(snakePenalty, sucess) = parseArgument<int>(
+            out, "snake penalty", argv[argOffset + 4], sucess, {0}, true);
+
+        tie(ladderReward, sucess) = parseArgument<int>(
+            out, "ladder reward", argv[argOffset + 5], sucess, {0}, true);
+
+        tie(numberOfPlayers, sucess) = parseArgument<size_t>(
+            out, "number of players", argv[argOffset + 6], sucess, {0}, true);
+
+        tie(maxTurns, sucess) =
+            parseArgument<size_t>(out, "maximum ammount of turns",
+                                  argv[argOffset + 7], sucess, {0}, true);
+
+        tie(autoOrManual, sucess) = parseArgument<char>(
+            out, "automatic or manual turn", argv[argOffset + 8], sucess,
+            {'a', 'A', 'm', 'M'});
+
+        // if any of the optional parameters could not be set, exit
+        if (!sucess) {
+            if (argc == 3 || argc == 11) {
+                fileIn.close();
+                fileOut.close();
+            }
+            return 3;
+        }
+
+        if (tolower(autoOrManual) == 'a') {
+
+            game = new AutomaticGame(in, out, boardSize, numberOfSnakes,
+                                     numberOfLadders, snakePenalty,
+                                     ladderReward, numberOfPlayers, maxTurns);
+        } else {
+
+            game = new ManualGame(in, out, boardSize, numberOfSnakes,
+                                  numberOfLadders, snakePenalty, ladderReward,
+                                  numberOfPlayers, maxTurns);
+        }
+
+    } else {
+        game = new ManualGame(in, out);
     }
 
     game->start();
 
     delete game;
 
-    if (argc == 3) {
+    if (argc == 3 || argc == 11) {
         fileIn.close();
         fileOut.close();
     }
 
     return 0;
+}
+
+// returns false if there was an error
+// takes into account if there was an error parsing an argument before as to not
+// overwrite the 'sucess' variable
+// I know, it's a mess :S
+template <typename T>
+pair<T, bool> parseArgument(ostream &out, string argumentName,
+                            string argumentString, bool previousSucess,
+                            vector<T> possibleValues, bool excludeMode) {
+
+    T returnValue;
+    bool isInVector;
+
+    stringstream ss(argumentString);
+
+    // if couldnt convert the input into the required return value
+    if (!(ss >> returnValue)) {
+        out << "ERROR: Couldn't parse " << argumentString << " for "
+            << argumentName << endl;
+
+        // use the default constructor for the data type
+        return make_pair(T(), false);
+
+    } else {
+        // if a vector of possible values is specified, find if the input value
+        // is in this vector
+        if (!possibleValues.empty()) {
+
+            isInVector = find(possibleValues.begin(), possibleValues.end(),
+                              returnValue) != possibleValues.end();
+
+            if ((isInVector && !excludeMode) || (!isInVector && excludeMode)) {
+                return make_pair(returnValue, previousSucess);
+
+            } else {
+                out << "ERROR: " << argumentString
+                    << " is an invalid value for " << argumentName << endl;
+
+                // use the default constructor for the data type
+                return make_pair(T(), false);
+            }
+
+        } else {
+            return make_pair(returnValue, previousSucess);
+        }
+    }
 }
