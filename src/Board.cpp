@@ -58,11 +58,11 @@ Board::Board(size_t boardSize, size_t numberOfSnakes, size_t numberOfLadders,
 size_t Board::size() { return this->d_tiles.size(); }
 
 string Board::tileString(size_t tileNumber) {
-    return this->d_tiles[tileNumber].toString();
+    return string(this->d_tiles[tileNumber]);
 }
 
 int Board::tileSteps(size_t tileNumber) {
-    return this->d_tiles[tileNumber].steps();
+    return int(this->d_tiles[tileNumber]);
 }
 
 // only used for getting, NOT setting

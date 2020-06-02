@@ -12,8 +12,8 @@ public:
     Tile();
     Tile(std::string stringName, int steps);
 
-    std::string toString();
-    int steps();
+    operator std::string() const;
+    operator int() const;
 };
 
 #endif
