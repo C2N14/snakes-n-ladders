@@ -4,30 +4,32 @@
 #include "SnakeTile.hpp"
 #include "Tile.hpp"
 #include <algorithm>
-#include <iostream>
 #include <numeric>
 #include <vector>
 
 using namespace std;
 
-// I really don't know if I love this chain of delegated constructors, but it
-// was the solution I found worked the best to have each class call its default
-// constructor without aggregating all constants in a single file
-
+// default constructor
 Board::Board() : Board(DEFAULT_BOARD_SIZE, DEFAULT_SNAKES, DEFAULT_LADDERS) {}
 
-Board::Board(size_t boardSize, size_t numberOfSnakes, size_t numberOfLadders)
-    : Board(boardSize, numberOfSnakes, numberOfLadders, SnakeTile(),
-            LadderTile(), NormalTile()) {}
-
+// custom constructor
 Board::Board(size_t boardSize, size_t numberOfSnakes, size_t numberOfLadders,
              int snakePenalty, int ladderReward)
     : Board(boardSize, numberOfSnakes, numberOfLadders, SnakeTile(snakePenalty),
-            LadderTile(ladderReward), NormalTile()) {}
+            LadderTile(ladderReward)) {}
 
+// private constructor, only used by the other two overloaded constructors
 Board::Board(size_t boardSize, size_t numberOfSnakes, size_t numberOfLadders,
-             Tile snake, Tile ladder, Tile normal)
-    : d_tiles(boardSize, normal) {
+             Tile snake, Tile ladder) {
+
+    // initialize the pointers
+    this->d_snake = new SnakeTile(int(snake));
+    this->d_ladder = new LadderTile(int(ladder));
+    this->d_normal = new NormalTile();
+
+    // initialize the pointer vector, since they all are the same anyways a
+    // pointer vector is just enough
+    this->d_tiles = vector<Tile *>(boardSize, this->d_normal);
 
     size_t specialTiles = numberOfSnakes + numberOfLadders;
 
@@ -46,23 +48,31 @@ Board::Board(size_t boardSize, size_t numberOfSnakes, size_t numberOfLadders,
     random_shuffle(possiblePlaces.begin(), possiblePlaces.end());
 
     // prioritize snakes, obviously ;)
+    // point pointers to pointy places
     for (size_t i = 0; i < specialTiles; i++) {
         if (i < numberOfSnakes) {
-            this->d_tiles[possiblePlaces[i]] = snake;
+            this->d_tiles[possiblePlaces[i]] = this->d_snake;
         } else {
-            this->d_tiles[possiblePlaces[i]] = ladder;
+            this->d_tiles[possiblePlaces[i]] = this->d_ladder;
         }
     }
+}
+
+// delete the tile pointers
+Board::~Board() {
+    delete this->d_snake;
+    delete this->d_ladder;
+    delete this->d_normal;
 }
 
 size_t Board::size() { return this->d_tiles.size(); }
 
 string Board::tileString(size_t tileNumber) {
-    return string(this->d_tiles[tileNumber]);
+    return string(*this->d_tiles[tileNumber]);
 }
 
 int Board::tileSteps(size_t tileNumber) {
-    return int(this->d_tiles[tileNumber]);
+    return int(*this->d_tiles[tileNumber]);
 }
 
 // only used for getting, NOT setting
