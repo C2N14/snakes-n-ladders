@@ -16,7 +16,7 @@ protected:
 
     Die d_die;
     Board d_board;
-    std::vector<Player> d_players;
+    std::vector<Player *> d_players;
 
     unsigned int d_maxTurns;
     unsigned int d_turnNumber;

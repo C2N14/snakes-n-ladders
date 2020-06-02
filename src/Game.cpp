@@ -3,8 +3,10 @@
 
 using namespace std;
 
+// "default" constructor
 Game::Game() : Game(cin, cout) {}
 
+// real default constructor
 Game::Game(istream &is, ostream &os)
     : d_in(is), d_out(os), d_die(), d_board(),
       d_players(DEFAULT_PLAYERS_NUMBER), d_maxTurns(DEFAULT_MAX_TURNS),
@@ -13,10 +15,11 @@ Game::Game(istream &is, ostream &os)
     size_t numberOfPlayers = DEFAULT_PLAYERS_NUMBER;
 
     for (size_t i = 0; i < numberOfPlayers; i++) {
-        d_players[i] = Player(i + 1);
+        d_players[i] = new Player(i + 1);
     }
 }
 
+// custom constructor
 Game::Game(istream &is, ostream &os, size_t boardSize, size_t numberOfSnakes,
            size_t numberOfLadders, int snakePenalty, int ladderReward,
            size_t numberOfPlayers, unsigned int maxTurns)
@@ -26,7 +29,7 @@ Game::Game(istream &is, ostream &os, size_t boardSize, size_t numberOfSnakes,
       d_players(numberOfPlayers), d_maxTurns(maxTurns), d_turnNumber(1) {
 
     for (size_t i = 0; i < numberOfPlayers; i++) {
-        d_players[i] = Player(i + 1);
+        d_players[i] = new Player(i + 1);
     }
 }
 
@@ -70,7 +73,7 @@ void Game::turn(Player *player) {
 
 void Game::start() {
     // start with first player
-    Player *currentPlayer = &this->d_players[0];
+    Player *currentPlayer = this->d_players[0];
 
     while (this->d_turnNumber <= this->d_maxTurns) {
         if (!this->turnPrompt()) {
@@ -85,14 +88,14 @@ void Game::start() {
             break;
         }
 
-        // increment to the next player
+        // increment to point to the next player
         currentPlayer =
-            &this->d_players[currentPlayer->number() % this->d_players.size()];
+            this->d_players[currentPlayer->number() % this->d_players.size()];
     }
 
     this->d_out << "-- GAME OVER --" << endl;
 
-    if (this->d_turnNumber == this->d_maxTurns) {
+    if (this->d_turnNumber >= this->d_maxTurns) {
         this->d_out << "The maximum number of turns has been reached..."
                     << endl;
     }
@@ -104,4 +107,11 @@ void Game::start() {
     }
 }
 
-Game::~Game() {}
+Game::~Game() {
+    size_t numberOfPlayers = this->d_players.size();
+
+    // delete all players
+    for (size_t i = 0; i < numberOfPlayers; i++) {
+        delete d_players[i];
+    }
+}
