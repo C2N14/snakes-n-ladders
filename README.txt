@@ -118,4 +118,13 @@ Algunas justificaciones del diseno que tome al realizar este programa son:
      la representacion de string del tipo de casilla porque me gusto como se
      veia esta notacion
    * Obviamente llame a la clase Die porque es un solo dado ಠ╭╮ಠ
-  
+   * Intente que cada constante para los valores default de su constructor
+     estuviera en su propio header file, en lugar de juntar todas las constantes
+     en el programa principal, y a consecuencia los constructores de la clase
+     Board estan un poco extranos, pero es la solucion menos compleja que
+     encontre
+   * En genral la manera en la que me gusta disenar las cosas es permisivas y
+     que manejen valores inusuales (e. g. si el numero de serpientes + el numero
+     de escaleras > tamano del tablero, solo poner el numero maximo posibles; o 
+     si la nueva posicion esta fuera del tablero, poner la nueva posicion en uno
+     de sus limites).

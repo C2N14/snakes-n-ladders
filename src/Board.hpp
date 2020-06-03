@@ -24,7 +24,6 @@ private:
 
 public:
     Board();
-    // Board(size_t boardSize, size_t numberOfSnakes, size_t numberOfLadders);
     Board(size_t boardSize, size_t numberOfSnakes, size_t numberOfLadders,
           int snakePenalty, int ladderReward);
 
