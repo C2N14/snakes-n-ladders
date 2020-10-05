@@ -123,7 +123,7 @@ Algunas justificaciones del diseno que tome al realizar este programa son:
      en el programa principal, y a consecuencia los constructores de la clase
      Board estan un poco extranos, pero es la solucion menos compleja que
      encontre
-   * En genral la manera en la que me gusta disenar las cosas es permisivas y
+   * En general la manera en la que me gusta disenar las cosas es permisivas y
      que manejen valores inusuales (e. g. si el numero de serpientes + el numero
      de escaleras > tamano del tablero, solo poner el numero maximo posibles; o 
      si la nueva posicion esta fuera del tablero, poner la nueva posicion en uno
